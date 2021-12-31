@@ -85,18 +85,46 @@ void Server::sessionOpened()
 
 void Server::incomingConnection()
 {
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_10);
-
     QTcpSocket *clientConnection = tcpServer->nextPendingConnection();
+
+    connectedClients.append(clientConnection);
+    connect(clientConnection, &QAbstractSocket::disconnected,
+            this, [&](){
+        connectedClients.removeOne(clientConnection);
+    });
 
     connect(clientConnection, &QAbstractSocket::disconnected,
             clientConnection, &QObject::deleteLater);
 
-    emit connected(clientConnection->localAddress().toString());
-    qDebug() << Q_FUNC_INFO << __LINE__ << clientConnection->localAddress();
-//    clientConnection->disconnectFromHost();
-//    clientConnection->write(block);
+    connect(clientConnection, &QIODevice::readyRead, this, [&](){
+        QDataStream in;
+        in.setDevice(clientConnection);
+        in.setVersion(QDataStream::Qt_5_10);
 
+
+
+        in.startTransaction();
+
+        QString nextFortune;
+        in >> nextFortune;
+        qDebug() << nextFortune << in.commitTransaction();
+    });
+
+    emit connected(clientConnection->localAddress().toString());
+    qDebug() << Q_FUNC_INFO << __LINE__ << clientConnection->localAddress() << clientConnection;
+
+
+    foreach (auto client, connectedClients) {
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out.setVersion(QDataStream::Qt_5_10);
+        out << client->localAddress().toString();
+
+        qDebug() << Q_FUNC_INFO << __LINE__ << block;
+
+        client->write(block);
+    }
+
+////    clientConnection->disconnectFromHost();
+///
 }

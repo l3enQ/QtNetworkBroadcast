@@ -31,6 +31,8 @@ private:
     QTcpServer *tcpServer = nullptr;
     QNetworkSession *networkSession = nullptr;
 
+    QList<QTcpSocket *> connectedClients;
+
     int _port;
 };
 

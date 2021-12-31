@@ -16,7 +16,12 @@ class Client : public QObject
 
 public:
     static Client *instance();
+
     void connectHost(QHostAddress address, quint16 port);
+    void sendMessage(QString message);
+    QString lastError();
+
+    QStringList getHosts() {return hosts;}
 
 private:
     explicit Client(QObject *parent = nullptr);
@@ -25,14 +30,18 @@ private:
     QTcpSocket *tcpSocket = nullptr;
     QNetworkSession *networkSession = nullptr;
 
+    QStringList hosts;
+    void initHosts();
+
 signals:
     void connected();
+    void displayError(QAbstractSocket::SocketError socketError);
+    void newRead(QString message);
 
 private slots:
-    void displayError(QAbstractSocket::SocketError socketError);
     void enableGetFortuneButton();
     void sessionOpened();
-    void readFortune();
+    void read();
 };
 
 #endif // CLIENT_H

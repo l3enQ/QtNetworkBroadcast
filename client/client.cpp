@@ -5,47 +5,21 @@
 
 Client *Client::instance()
 {
-    static Client clientInstance;
-    return &clientInstance;
+//    static Client clientInstance;
+    return new Client();//clientInstance;
 }
 
 Client::Client(QObject *parent)
     : QObject(parent)
     , tcpSocket(new QTcpSocket(this))
 {
-    QStringList hosts;
-
-    QString name = QHostInfo::localHostName();
-    if (!name.isEmpty()) {
-        hosts.append(name);
-        QString domain = QHostInfo::localDomainName();
-        if (!domain.isEmpty())
-            hosts.append(name + QChar('.') + domain);
-    }
-
-    if (name != QLatin1String("localhost"))
-        hosts.append(QString("localhost"));
-
-    // find out IP addresses of this machine
-    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    // add non-localhost addresses
-    for (int i = 0; i < ipAddressesList.size(); ++i) {
-        if (!ipAddressesList.at(i).isLoopback())
-            hosts.append(ipAddressesList.at(i).toString());
-    }
-
-    // add localhost addresses
-    for (int i = 0; i < ipAddressesList.size(); ++i) {
-        if (ipAddressesList.at(i).isLoopback())
-            hosts.append(ipAddressesList.at(i).toString());
-    }
-
+    initHosts();
 
     in.setDevice(tcpSocket);
     in.setVersion(QDataStream::Qt_4_0);
 
     connect(tcpSocket, &QAbstractSocket::connected, this, &Client::connected);
-    connect(tcpSocket, &QIODevice::readyRead, this, &Client::readFortune);
+    connect(tcpSocket, &QIODevice::readyRead, this, &Client::read);
     connect(tcpSocket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
             this, &Client::displayError);
 
@@ -74,6 +48,34 @@ Client::Client(QObject *parent)
     }
 }
 
+void Client::initHosts()
+{
+//    QString name = QHostInfo::localHostName();
+//    if (!name.isEmpty()) {
+//        hosts.append(name);
+//        QString domain = QHostInfo::localDomainName();
+//        if (!domain.isEmpty())
+//            hosts.append(name + QChar('.') + domain);
+//    }
+
+//    if (name != QLatin1String("localhost"))
+//        hosts.append(QString("localhost"));
+
+    // find out IP addresses of this machine
+    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+    // add non-localhost addresses
+    for (int i = 0; i < ipAddressesList.size(); ++i) {
+        if (!ipAddressesList.at(i).isLoopback())
+            hosts.append(ipAddressesList.at(i).toString());
+    }
+
+    // add localhost addresses
+    for (int i = 0; i < ipAddressesList.size(); ++i) {
+        if (ipAddressesList.at(i).isLoopback())
+            hosts.append(ipAddressesList.at(i).toString());
+    }
+}
+
 void Client::connectHost(QHostAddress address, quint16 port)
 {
 //    getFortuneButton->setEnabled(false);
@@ -82,54 +84,38 @@ void Client::connectHost(QHostAddress address, quint16 port)
     tcpSocket->connectToHost(address, port);
 }
 
-void Client::readFortune()
+void Client::sendMessage(QString message)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_10);
+
+    out << message;
+    tcpSocket->write(block);
+}
+
+QString Client::lastError()
+{
+    return tcpSocket->errorString();
+}
+
+void Client::read()
 {
     in.startTransaction();
 
     QString nextFortune;
     in >> nextFortune;
 
+
+    emit newRead(nextFortune);
+
     if (!in.commitTransaction())
         return;
 
-//    if (nextFortune == currentFortune) {
-//        QTimer::singleShot(0, this, &Client::requestNewFortune);
-//        return;
-//    }
-
-//    currentFortune = nextFortune;
 //    statusLabel->setText(currentFortune);
 //    getFortuneButton->setEnabled(true);
 }
 
-
-void Client::displayError(QAbstractSocket::SocketError socketError)
-{
-
-    qDebug() << Q_FUNC_INFO << __LINE__ << socketError;
-//    switch (socketError) {
-//    case QAbstractSocket::RemoteHostClosedError:
-//        break;
-//    case QAbstractSocket::HostNotFoundError:
-//        QMessageBox::information(this, tr("Fortune Client"),
-//                                 tr("The host was not found. Please check the "
-//                                    "host name and port settings."));
-//        break;
-//    case QAbstractSocket::ConnectionRefusedError:
-//        QMessageBox::information(this, tr("Fortune Client"),
-//                                 tr("The connection was refused by the peer. "
-//                                    "Make sure the fortune server is running, "
-//                                    "and check that the host name and port "
-//                                    "settings are correct."));
-//        break;
-//    default:
-//        QMessageBox::information(this, tr("Fortune Client"),
-//                                 tr("The following error occurred: %1.")
-//                                 .arg(tcpSocket->errorString()));
-//    }
-
-//    getFortuneButton->setEnabled(true);
-}
 
 void Client::enableGetFortuneButton()
 {

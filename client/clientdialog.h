@@ -20,13 +20,19 @@ public:
 private slots:
     void on_leMessage_returnPressed();
     void on_btnSend_clicked();
-
     void on_btnConnect_clicked();
+    void on_cbxHosts_currentIndexChanged(const QString &arg1);
+
+    void on_leMessage_textEdited(const QString &arg1);
 
 private:
     Ui::ClientDialog *ui;
 
     Client *_client;
+
+    void sendMessage();
+    void disable();
+    void enable();
 };
 
 #endif // CLIENTDIALOG_H
