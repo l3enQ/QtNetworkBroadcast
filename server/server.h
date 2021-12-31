@@ -17,6 +17,7 @@ class Server : public QObject
 public:
     static Server *instance();
     void start(int port);
+    void stop();
     void disconnectSocket(int index);
 
 private slots:
@@ -25,6 +26,7 @@ private slots:
 
 signals:
     void started(QString ip, quint16 port);
+    void stopped();
     void error(QString error);
     void connected(QString ip);
     void messageReceived(QString source, QString message);

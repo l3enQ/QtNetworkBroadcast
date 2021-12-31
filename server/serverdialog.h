@@ -20,11 +20,14 @@ public:
 private slots:
     void on_btnStartServer_clicked();
     void on_lwConnectedClients_customContextMenuRequested(const QPoint &pos);
+    void on_btnStop_clicked();
 
 private:
     Ui::ServerDialog *ui;
 
     Server *_server;
+
+    void closeEvent(QCloseEvent *e) override;
 };
 
 #endif // SERVERDIALOG_H

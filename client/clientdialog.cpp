@@ -5,6 +5,7 @@
 
 #include <QHostAddress>
 #include <QMessageBox>
+#include <QCloseEvent>
 
 ClientDialog::ClientDialog(QWidget *parent) :
     QDialog(parent),
@@ -117,4 +118,12 @@ void ClientDialog::on_cbxHosts_editTextChanged(const QString &arg1)
 void ClientDialog::on_btnDisconnect_clicked()
 {
     _client->disconnectHost();
+}
+
+void ClientDialog::closeEvent(QCloseEvent *e)
+{
+    if (ui->stackedWidget->currentIndex() == 1)
+        _client->disconnectHost();
+
+    e->accept();
 }

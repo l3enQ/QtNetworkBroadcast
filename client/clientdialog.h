@@ -22,11 +22,8 @@ private slots:
     void on_btnSend_clicked();
     void on_btnConnect_clicked();
     void on_cbxHosts_currentIndexChanged(const QString &arg1);
-
     void on_leMessage_textEdited(const QString &arg1);
-
     void on_cbxHosts_editTextChanged(const QString &arg1);
-
     void on_btnDisconnect_clicked();
 
 private:
@@ -35,6 +32,7 @@ private:
     Client *_client;
 
     void sendMessage();
+    void closeEvent(QCloseEvent *e) override;
 };
 
 #endif // CLIENTDIALOG_H

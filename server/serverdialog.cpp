@@ -2,6 +2,7 @@
 #include "ui_serverdialog.h"
 
 #include <QMenu>
+#include <QCloseEvent>
 
 #include "server.h"
 
@@ -19,17 +20,26 @@ ServerDialog::ServerDialog(QWidget *parent) :
                             .arg(ipAddress).arg(port));
        ui->progressBar->hide();
        ui->lStatus->show();
-       ui->btnStartServer->setText("Stop");
-       ui->btnStartServer->setEnabled(true);
+       ui->pStart->setEnabled(true);
+       ui->stackedWidget->setCurrentWidget(ui->pStop);
+
+       ui->textBrowser->insertPlainText(QString("%0 : Server started.\n")
+                                        .arg(QDateTime::currentDateTime().toString()));
+    });
+
+    connect(_server, &Server::stopped, this, [&] () {
+        ui->lStatus->hide();
+        ui->stackedWidget->setCurrentWidget(ui->pStart);
+
+        ui->textBrowser->insertPlainText(QString("%0 : Server stopped.\n")
+                                         .arg(QDateTime::currentDateTime().toString()));
     });
 
     connect(_server, &Server::error, this, [&] (QString errorStr) {
         ui->lStatus->setText(errorStr);
-
         ui->progressBar->hide();
         ui->lStatus->show();
-        ui->btnStartServer->setText("Start");
-        ui->btnStartServer->setEnabled(true);
+        ui->pStart->setEnabled(true);
     });
 
     connect(_server, &Server::connected, this, [&] (QString ip) {
@@ -48,7 +58,11 @@ ServerDialog::ServerDialog(QWidget *parent) :
     });
 
     connect(_server, &Server::socketDisconnected, this, [&] (int index) {
-       delete ui->lwConnectedClients->takeItem(index);
+       auto item = ui->lwConnectedClients->takeItem(index);
+       ui->textBrowser->insertPlainText(QString("%0 : %1 disconnected.\n")
+                                        .arg(QDateTime::currentDateTime().toString(),
+                                             item->data(Qt::DisplayRole).toString()));
+       delete item;
     });
 }
 
@@ -59,7 +73,7 @@ ServerDialog::~ServerDialog()
 
 void ServerDialog::on_btnStartServer_clicked()
 {
-    ui->btnStartServer->setDisabled(true);
+    ui->pStart->setDisabled(true);
 
     ui->progressBar->show();
     ui->lStatus->hide();
@@ -78,4 +92,16 @@ void ServerDialog::on_lwConnectedClients_customContextMenuRequested(const QPoint
         if (action)
             _server->disconnectSocket(rows.first().row());
     }
+}
+
+void ServerDialog::on_btnStop_clicked()
+{
+    _server->stop();
+}
+
+void ServerDialog::closeEvent(QCloseEvent *e)
+{
+    if (ui->stackedWidget->currentIndex() == 1)
+        _server->stop();
+    e->accept();
 }

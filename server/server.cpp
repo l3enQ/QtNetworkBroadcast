@@ -41,6 +41,15 @@ void Server::start(int port)
     }
 }
 
+void Server::stop()
+{
+    tcpServer->close();
+    foreach (auto client, connectedClients) {
+        client->getSocket()->disconnectFromHost();
+    }
+    emit stopped();
+}
+
 void Server::disconnectSocket(int index)
 {
     if (connectedClients.count() > index)
@@ -116,6 +125,4 @@ void Server::incomingConnection()
     });
 
     emit connected(clientReader->getSocket()->peerAddress().toString());
-////    clientConnection->disconnectFromHost();
-///
 }
