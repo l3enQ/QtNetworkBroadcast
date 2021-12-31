@@ -19,6 +19,7 @@ public:
 
 private slots:
     void on_btnStartServer_clicked();
+    void on_lwConnectedClients_customContextMenuRequested(const QPoint &pos);
 
 private:
     Ui::ServerDialog *ui;

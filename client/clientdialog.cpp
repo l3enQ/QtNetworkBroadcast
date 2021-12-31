@@ -101,9 +101,12 @@ void ClientDialog::on_leMessage_textEdited(const QString &arg1)
 void ClientDialog::sendMessage()
 {
     auto text = ui->leMessage->text();
-    ui->leMessage->clear();
+    if (!text.isEmpty() && ui->stackedWidget->currentIndex() == 1) {
+        ui->leMessage->clear();
+        ui->btnSend->setDisabled(true);
 
-    _client->sendMessage(text);
+        _client->sendMessage(text);
+    }
 }
 
 void ClientDialog::on_cbxHosts_editTextChanged(const QString &arg1)

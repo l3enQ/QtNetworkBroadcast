@@ -1,6 +1,8 @@
 #include "serverdialog.h"
 #include "ui_serverdialog.h"
 
+#include <QMenu>
+
 #include "server.h"
 
 ServerDialog::ServerDialog(QWidget *parent) :
@@ -31,7 +33,6 @@ ServerDialog::ServerDialog(QWidget *parent) :
     });
 
     connect(_server, &Server::connected, this, [&] (QString ip) {
-
         ui->lwConnectedClients->addItem(ip);
 
         ui->textBrowser->insertPlainText(QString("%0 : %1 connected.\n")
@@ -44,6 +45,10 @@ ServerDialog::ServerDialog(QWidget *parent) :
                                          .arg(QDateTime::currentDateTime().toString(),
                                               message,
                                               source));
+    });
+
+    connect(_server, &Server::socketDisconnected, this, [&] (int index) {
+       delete ui->lwConnectedClients->takeItem(index);
     });
 }
 
@@ -61,4 +66,16 @@ void ServerDialog::on_btnStartServer_clicked()
 
 
     _server->start(ui->spbxPort->value());
+}
+
+void ServerDialog::on_lwConnectedClients_customContextMenuRequested(const QPoint &pos)
+{
+    auto rows = ui->lwConnectedClients->selectionModel()->selectedRows(0);
+    if (!rows.isEmpty()) {
+        QMenu m(ui->lwConnectedClients);
+        m.addAction("disconnect");
+        auto action = m.exec(ui->lwConnectedClients->mapToGlobal(pos));
+        if (action)
+            _server->disconnectSocket(rows.first().row());
+    }
 }

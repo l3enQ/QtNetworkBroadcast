@@ -41,6 +41,12 @@ void Server::start(int port)
     }
 }
 
+void Server::disconnectSocket(int index)
+{
+    if (connectedClients.count() > index)
+        connectedClients.at(index)->getSocket()->disconnectFromHost();
+}
+
 void Server::sessionOpened()
 {
     // Save the used configuration
@@ -90,12 +96,15 @@ void Server::incomingConnection()
 
     connectedClients.append(clientReader);
     connect(clientReader, &ClientHelper::destroyed,
-            this, [&](){
+            this, [=](){
+        int index = connectedClients.indexOf(clientReader);
         connectedClients.removeOne(clientReader);
+
+        emit socketDisconnected(index);
     });
 
     connect(clientReader, &ClientHelper::messageRecieved, this, [=](QString message){
-        emit messageReceived(clientReader->getSocket()->localAddress().toString(),
+        emit messageReceived(clientReader->getSocket()->peerAddress().toString(),
                              message);
 
         foreach (auto client, connectedClients) {
@@ -106,7 +115,7 @@ void Server::incomingConnection()
         }
     });
 
-    emit connected(clientReader->getSocket()->localAddress().toString());
+    emit connected(clientReader->getSocket()->peerAddress().toString());
 ////    clientConnection->disconnectFromHost();
 ///
 }

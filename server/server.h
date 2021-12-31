@@ -17,6 +17,7 @@ class Server : public QObject
 public:
     static Server *instance();
     void start(int port);
+    void disconnectSocket(int index);
 
 private slots:
     void sessionOpened();
@@ -27,6 +28,7 @@ signals:
     void error(QString error);
     void connected(QString ip);
     void messageReceived(QString source, QString message);
+    void socketDisconnected(int index);
 
 private:
     explicit Server(QObject *parent = nullptr);
