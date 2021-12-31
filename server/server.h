@@ -4,10 +4,11 @@
 #include <QtNetwork>
 
 QT_BEGIN_NAMESPACE
-class QLabel;
 class QTcpServer;
 class QNetworkSession;
 QT_END_NAMESPACE
+
+class ClientHelper;
 
 class Server : public QObject
 {
@@ -25,13 +26,15 @@ signals:
     void started(QString ip, quint16 port);
     void error(QString error);
     void connected(QString ip);
+    void messageReceived(QString source, QString message);
 
 private:
     explicit Server(QObject *parent = nullptr);
     QTcpServer *tcpServer = nullptr;
     QNetworkSession *networkSession = nullptr;
 
-    QList<QTcpSocket *> connectedClients;
+    QList<ClientHelper *> connectedClients;
+
 
     int _port;
 };

@@ -1,4 +1,5 @@
 #include "server.h"
+#include "clienthelper.h"
 
 Server::Server(QObject *parent)
     : QObject(parent)
@@ -85,46 +86,27 @@ void Server::sessionOpened()
 
 void Server::incomingConnection()
 {
-    QTcpSocket *clientConnection = tcpServer->nextPendingConnection();
+    auto clientReader = new ClientHelper(tcpServer->nextPendingConnection());
 
-    connectedClients.append(clientConnection);
-    connect(clientConnection, &QAbstractSocket::disconnected,
+    connectedClients.append(clientReader);
+    connect(clientReader, &ClientHelper::destroyed,
             this, [&](){
-        connectedClients.removeOne(clientConnection);
+        connectedClients.removeOne(clientReader);
     });
 
-    connect(clientConnection, &QAbstractSocket::disconnected,
-            clientConnection, &QObject::deleteLater);
+    connect(clientReader, &ClientHelper::messageRecieved, this, [=](QString message){
+        emit messageReceived(clientReader->getSocket()->localAddress().toString(),
+                             message);
 
-    connect(clientConnection, &QIODevice::readyRead, this, [&](){
-        QDataStream in;
-        in.setDevice(clientConnection);
-        in.setVersion(QDataStream::Qt_5_10);
+        foreach (auto client, connectedClients) {
+//            if  (client == clientReader)
+//                continue;
 
-
-
-        in.startTransaction();
-
-        QString nextFortune;
-        in >> nextFortune;
-        qDebug() << nextFortune << in.commitTransaction();
+            client->sendMessage(message);
+        }
     });
 
-    emit connected(clientConnection->localAddress().toString());
-    qDebug() << Q_FUNC_INFO << __LINE__ << clientConnection->localAddress() << clientConnection;
-
-
-    foreach (auto client, connectedClients) {
-        QByteArray block;
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out.setVersion(QDataStream::Qt_5_10);
-        out << client->localAddress().toString();
-
-        qDebug() << Q_FUNC_INFO << __LINE__ << block;
-
-        client->write(block);
-    }
-
+    emit connected(clientReader->getSocket()->localAddress().toString());
 ////    clientConnection->disconnectFromHost();
 ///
 }

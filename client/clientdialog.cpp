@@ -48,9 +48,7 @@ ClientDialog::ClientDialog(QWidget *parent) :
     });
 
     connect(_client, &Client::newRead, this, [&](QString message) {
-
-        qDebug() << Q_FUNC_INFO << __LINE__ << message;
-        ui->listWidget->insertItem(0, message);
+        ui->listWidget->addItem(message);
     });
 
     ui->cbxHosts->insertItems(0, _client->getHosts());
@@ -91,7 +89,10 @@ void ClientDialog::on_leMessage_textEdited(const QString &arg1)
 
 void ClientDialog::sendMessage()
 {
-    _client->sendMessage(ui->leMessage->text());
+    auto text = ui->leMessage->text();
+    ui->leMessage->clear();
+
+    _client->sendMessage(text);
 }
 
 void ClientDialog::disable()

@@ -21,14 +21,16 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     server/server.cpp \
-    server/serverdialog.cpp
+    server/serverdialog.cpp \
+    server/clienthelper.cpp
 
 HEADERS += \
     client/client.h \
     client/clientdialog.h \
     mainwindow.h \
     server/server.h \
-    server/serverdialog.h
+    server/serverdialog.h \
+    server/clienthelper.h
 
 FORMS += \
     client/clientdialog.ui \

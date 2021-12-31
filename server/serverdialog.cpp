@@ -31,8 +31,19 @@ ServerDialog::ServerDialog(QWidget *parent) :
     });
 
     connect(_server, &Server::connected, this, [&] (QString ip) {
-        ui->textBrowser->insertPlainText(ip);
-        ui->textBrowser->insertPlainText("\n");
+
+        ui->lwConnectedClients->addItem(ip);
+
+        ui->textBrowser->insertPlainText(QString("%0 : %1 connected.\n")
+                                         .arg(QDateTime::currentDateTime().toString(),
+                                              ip));
+    });
+
+    connect(_server, &Server::messageReceived, this, [&] (QString source, QString message) {
+        ui->textBrowser->insertPlainText(QString("%0 : (%2) %1\n")
+                                         .arg(QDateTime::currentDateTime().toString(),
+                                              message,
+                                              source));
     });
 }
 
