@@ -18,7 +18,8 @@ Client::Client(QObject *parent)
     in.setDevice(tcpSocket);
     in.setVersion(QDataStream::Qt_4_0);
 
-    connect(tcpSocket, &QAbstractSocket::connected, this, &Client::connected);
+    connect(tcpSocket, &QAbstractSocket::connected,    this, &Client::connected);
+    connect(tcpSocket, &QAbstractSocket::disconnected, this, &Client::disconnected);
     connect(tcpSocket, &QIODevice::readyRead, this, &Client::read);
     connect(tcpSocket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
             this, &Client::displayError);
@@ -82,6 +83,11 @@ void Client::connectHost(QHostAddress address, quint16 port)
     tcpSocket->abort();
 
     tcpSocket->connectToHost(address, port);
+}
+
+void Client::disconnectHost()
+{
+    tcpSocket->disconnectFromHost();
 }
 
 void Client::sendMessage(QString message)

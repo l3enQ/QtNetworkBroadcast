@@ -25,14 +25,16 @@ private slots:
 
     void on_leMessage_textEdited(const QString &arg1);
 
+    void on_cbxHosts_editTextChanged(const QString &arg1);
+
+    void on_btnDisconnect_clicked();
+
 private:
     Ui::ClientDialog *ui;
 
     Client *_client;
 
     void sendMessage();
-    void disable();
-    void enable();
 };
 
 #endif // CLIENTDIALOG_H

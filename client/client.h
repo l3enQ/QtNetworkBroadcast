@@ -18,6 +18,7 @@ public:
     static Client *instance();
 
     void connectHost(QHostAddress address, quint16 port);
+    void disconnectHost();
     void sendMessage(QString message);
     QString lastError();
 
@@ -35,6 +36,7 @@ private:
 
 signals:
     void connected();
+    void disconnected();
     void displayError(QAbstractSocket::SocketError socketError);
     void newRead(QString message);
 

@@ -17,12 +17,24 @@ ClientDialog::ClientDialog(QWidget *parent) :
     _client = Client::instance();
 
     connect(_client, &Client::connected, this, [&](){
-        ui->btnConnect->setText("connected");
-
         ui->progressBar->hide();
+
+        ui->spbxPort_2->setValue(ui->spbxPort->value());
+        ui->stackedWidget->setCurrentIndex(1);
+
+        on_leMessage_textEdited(ui->leMessage->text());
+    });
+
+    connect(_client, &Client::disconnected, this, [&](){
+        ui->stackedWidget->setCurrentIndex(0);
+        ui->btnConnect->setEnabled(true);
+
+        on_leMessage_textEdited(ui->leMessage->text());
     });
 
     connect(_client, &Client::displayError, this, [&](QAbstractSocket::SocketError socketError){
+        ui->progressBar->hide();
+
         switch (socketError) {
         case QAbstractSocket::RemoteHostClosedError:
             break;
@@ -43,8 +55,7 @@ ClientDialog::ClientDialog(QWidget *parent) :
                                      tr("The following error occurred: %1.")
                                      .arg(_client->lastError()));
         }
-
-        disable();
+        ui->btnConnect->setEnabled(true);
     });
 
     connect(_client, &Client::newRead, this, [&](QString message) {
@@ -84,7 +95,7 @@ void ClientDialog::on_cbxHosts_currentIndexChanged(const QString &arg1)
 
 void ClientDialog::on_leMessage_textEdited(const QString &arg1)
 {
-    ui->btnSend->setDisabled(arg1.isEmpty());
+    ui->btnSend->setDisabled(arg1.isEmpty() || ui->stackedWidget->currentIndex() != 1);
 }
 
 void ClientDialog::sendMessage()
@@ -95,12 +106,12 @@ void ClientDialog::sendMessage()
     _client->sendMessage(text);
 }
 
-void ClientDialog::disable()
+void ClientDialog::on_cbxHosts_editTextChanged(const QString &arg1)
 {
-
+    ui->leHost->setText(arg1);
 }
 
-void ClientDialog::enable()
+void ClientDialog::on_btnDisconnect_clicked()
 {
-
+    _client->disconnectHost();
 }
